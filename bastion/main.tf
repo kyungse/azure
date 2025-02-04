@@ -74,4 +74,26 @@ resource "azurerm_linux_virtual_machine" "bastion" {
   boot_diagnostics {
     storage_account_uri = data.terraform_remote_state.common.outputs.storage_account_uri
   }
+  
+  connection {
+    type        = "ssh"
+    user        = var.admin_username
+    private_key = file("~/.ssh/${var.ssh_public_key_name}")
+    host        = azurerm_public_ip.bastion_pip.ip_address
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -y",
+      "sudo apt install -y git net-tools curl wget python3 python3-pip unzip",
+
+      "curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip",
+      "sudo unzip terraform.zip -d /usr/local/bin/",
+      "rm terraform.zip",
+      "terraform --version",
+
+      "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
+      "az --version"
+    ]
+  }
 }

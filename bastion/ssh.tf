@@ -13,3 +13,15 @@ resource "azapi_resource" "ssh_public_key" {
   location  = data.azurerm_resource_group.rg.location
   parent_id = data.azurerm_resource_group.rg.id
 }
+
+resource "local_file" "private_key" {
+  content         = azapi_resource_action.ssh_public_key_gen.output.privateKey
+  filename        = pathexpand("~/.ssh/${var.ssh_public_key_name}")
+  file_permission = "0600"
+}
+
+resource "local_file" "public_key" {
+  content         = azapi_resource_action.ssh_public_key_gen.output.publicKey
+  filename        = pathexpand("~/.ssh/${var.ssh_public_key_name}.pub")
+  file_permission = "0644"
+}

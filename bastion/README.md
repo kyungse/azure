@@ -14,15 +14,8 @@ $ terraform apply -var-file=config/custom.tfvars -var-file=config/backend.tfvars
 
 ### How to access bastion using SSH
 ```zsh
-# After deploying bastion host
-# Save the ssh key generated via azapi_resource_action locally
-$ terraform output bastion_ssh_private_key >> ~/.ssh/bastion_ssh_key
-$ terraform output bastion_ssh_public_key >> ~/.ssh/bastion_ssh_key.pub
-$ chmod 400 ~/.ssh/bastion_ssh_key.pub 
-$ chmod 400 ~/.ssh/bastion_ssh_key
-
 # Connect bastion using SSH
-$ ssh {admin_user}@{bastion_public_ip} -i ~/.ssh/bastion_ssh_key
+$ ssh {admin_user}@{bastion_public_ip} -i ~/.ssh/{ssh_private_key_name}
 ```
 
 ### Basic Bastion Architecture
