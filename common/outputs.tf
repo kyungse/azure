@@ -27,3 +27,8 @@ output "container_url" {
   description = "The URL of the storage container"
   value       = azurerm_storage_container.storage_container.id
 }
+
+output "storage_account_uri" {
+  description = "The URI of the storage account"
+  value       = azurerm_storage_account.storage_account.primary_blob_endpoint
+}

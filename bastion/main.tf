@@ -70,4 +70,8 @@ resource "azurerm_linux_virtual_machine" "bastion" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+
+  boot_diagnostics {
+    storage_account_uri = data.terraform_remote_state.common.outputs.storage_account_uri
+  }
 }
