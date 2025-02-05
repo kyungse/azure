@@ -6,17 +6,19 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "public_subnet" {
-  name                 = var.public_subnet_name
-  resource_group_name  =data.azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.public_subnet_cidr_blocks
+  name                            = var.public_subnet_name
+  resource_group_name             = data.azurerm_resource_group.rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.public_subnet_cidr_blocks
+  default_outbound_access_enabled = true
 }
 
 resource "azurerm_subnet" "private_subnet" {
-  name                 = var.private_subnet_name
-  resource_group_name  = data.azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.private_subnet_cidr_blocks
+  name                            = var.private_subnet_name
+  resource_group_name             = data.azurerm_resource_group.rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.private_subnet_cidr_blocks
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_nat_gateway" "nat_gateway" {
@@ -44,27 +46,21 @@ resource "azurerm_subnet_nat_gateway_association" "private_subnet_nat_associatio
   nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
 }
 
-resource "azurerm_network_security_group" "private_subnet_nsg" {
-  name                = var.private_subnet_nsg_name
+resource "azurerm_route_table" "nat_route_table" {
+  name                = "nat-route-table"
   location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.terraform_remote_state.common.outputs.resource_group_name
+  resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-resource "azurerm_network_security_rule" "deny_internet_outbound" {
-  name                        = "DenyInternetOutbound"
-  priority                    = 100
-  direction                   = "Outbound"
-  access                      = "Deny"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_range      = "*"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "Internet"
-  resource_group_name         = data.terraform_remote_state.common.outputs.resource_group_name
-  network_security_group_name = azurerm_network_security_group.private_subnet_nsg.name
+resource "azurerm_route" "nat_route" {
+  name                   = "nat-internet-route"
+  resource_group_name    = data.azurerm_resource_group.rg.name
+  route_table_name       = azurerm_route_table.nat_route_table.name
+  address_prefix         = "0.0.0.0/0"
+  next_hop_type          = "Internet"
 }
 
-resource "azurerm_subnet_network_security_group_association" "private_subnet_nsg_association" {
-  subnet_id                 = azurerm_subnet.private_subnet.id
-  network_security_group_id = azurerm_network_security_group.private_subnet_nsg.id
+resource "azurerm_subnet_route_table_association" "nat_association" {
+  subnet_id      = azurerm_subnet.private_subnet.id
+  route_table_id = azurerm_route_table.nat_route_table.id
 }
