@@ -70,23 +70,3 @@ resource "azurerm_subnet_nat_gateway_association" "private_subnet_nat_associatio
   subnet_id      = azurerm_subnet.private_subnet.id
   nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
 }
-
-resource "azurerm_route_table" "nat_route_table" {
-  name                = "nat-route-table"
-  location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.azurerm_resource_group.rg.name
-}
-
-resource "azurerm_route" "nat_route" {
-  name                   = "nat-internet-route"
-  resource_group_name    = data.azurerm_resource_group.rg.name
-  route_table_name       = azurerm_route_table.nat_route_table.name
-  address_prefix         = "0.0.0.0/0"
-  next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = azurerm_public_ip.nat_public_ip.ip_address
-}
-
-resource "azurerm_subnet_route_table_association" "nat_association" {
-  subnet_id      = azurerm_subnet.private_subnet.id
-  route_table_id = azurerm_route_table.nat_route_table.id
-}
